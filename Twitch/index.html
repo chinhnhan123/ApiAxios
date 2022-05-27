@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row" id="header">
+            <h1>Twitch Streamers</h1>
+            <div class="menu">
+              <div class="selector active" id="all">
+                <div class="circle"></div><p>All</p>
+              </div>
+              <div class="selector" id="online">
+                <div class="circle"></div><p>Online</p>
+              </div>
+              <div class="selector" id="offline">
+                <div class="circle"></div><p>Offline</p>
+              </div>
+            </div>
+          </div>
+          <div id="streamers-list">
+            <div class="streamer-online">
+
+            </div>
+            <div class="streamer-offline">
+              
+            </div>
+          </div>
+    </div>
+
+</body>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+   document.addEventListener("DOMContentLoaded", async () => {
+        const channels = ["ESL_SC2", "OgamingSC2", "cretetion", "freecodecamp", "storbeck", "habathcx", "RobotCaleb", "noobs2ninjas"];
+        //Solution1
+        // channels.forEach(async (channel) => {
+        //     const result = await axios.get(`https://twitch-proxy.freecodecamp.rocks/twitch-api/channels/${channel}`);
+        //     console.log("🚀 result", result.data);
+        // })
+        // })
+        // Solution 2
+        const promises = channels.map(async (channel) => {
+            const result = await axios.get(`https://twitch-proxy.freecodecamp.rocks/twitch-api/channels/${channel}`);
+            const {display_name, game, logo, url,status} = result.data;
+            return {display_name, game, logo, url,status};
+        })
+        const streamers = await Promise.all(promises)
+
+        const promiseOnline = channels.map(async (channel) => {
+            const result = await axios.get(`https://twitch-proxy.freecodecamp.rocks/twitch-api/streams/${channel}`);
+            const {stream} = result.data;
+            return stream;
+        })
+        const streamerOnline = await Promise.all(promiseOnline)
+
+        console.log("🚀 ~ file: index.html ~ line 56 ~ streamerOnline", streamerOnline)
+        console.log("🚀 ~ file: index.html ~ line 29 ~ promises ~ promises", promises)
+        const streamersOnline = document.querySelector('.streamer-online');
+        console.log("🚀 ~ file: index.html ~ line 65 ~ streamersOnline", streamersOnline)
+        const streamersOffline = document.querySelector('.streamer-offline');
+
+        let i = 0;
+   streamers.forEach(streamer => {
+    const gameStatus = (streamer.game === null || streamer.status === null) ? " " : ` ${streamer.game} : ${streamer.status}`
+    let streamerItem;
+
+    if (streamerOnline[i] != null) {
+      streamerItem = `   
+            <div class="row online">
+                <div class="col-xs-2 col-sm-1" id="icon">
+                    <img src="${streamer.logo}" class="logo">
+                </div>
+                <div class="col-xs-10 col-sm-3" id="name">
+                    <a href="https://www.twitch.tv/${streamer.display_name}" target="_blank">${streamer.display_name}</a>
+                </div>
+                <div class="col-xs-10 col-sm-8" id="streaming">
+                    ${gameStatus}
+                </div>
+            </div>`;
+            streamersOnline.insertAdjacentHTML('beforeEnd' , streamerItem);
+    }
+    else{
+      streamerItem = `   
+            <div class="row offline">
+                <div class="col-xs-2 col-sm-1" id="icon">
+                    <img src="${streamer.logo}" class="logo">
+                </div>
+                <div class="col-xs-10 col-sm-3" id="name">
+                    <a href="https://www.twitch.tv/${streamer.display_name}" target="_blank">${streamer.display_name}</a>
+                </div>
+                <div class="col-xs-10 col-sm-8" id="streaming">
+                  Offline
+                </div>
+            </div>`;
+            streamersOffline.insertAdjacentHTML('beforeEnd' , streamerItem);
+    }
+            i++;
+   })
+    })
+</script>
+<script>
+  const streamerAll = document.querySelector('#all');
+   const online = document.querySelector('#online');
+   const offline = document.querySelector('#offline');
+   const streamersOnline = document.querySelector('.streamer-online');
+   const streamersOffline = document.querySelector('.streamer-offline');
+
+   online.addEventListener("click", async () =>{
+    streamerAll.classList.remove('active');
+    offline.classList.remove('active');
+    online.classList.add('active');
+    streamersOnline.classList.remove('hidden');
+    streamersOffline.classList.add('hidden');
+   })
+
+   offline.addEventListener("click", async () =>{
+    streamerAll.classList.remove('active');
+    online.classList.remove('active');
+    offline.classList.add('active');
+    streamersOnline.classList.add('hidden');
+    streamersOffline.classList.remove('hidden');
+
+   })
+
+   streamerAll.addEventListener("click", async () =>{
+    online.classList.remove('active');
+    offline.classList.remove('active');
+    streamerAll.classList.add('active');
+    streamersOnline.classList.remove('hidden');
+    streamersOffline.classList.remove('hidden');
+   })
+</script>
+</html>
